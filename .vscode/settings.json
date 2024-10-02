@@ -2,5 +2,6 @@
     "java.project.referencedLibraries": [
         "lib/**/*.jar",
         "libs/json-20240303.jar"
-    ]
+    ],
+    "java.debug.settings.onBuildFailureProceed": true
 }
