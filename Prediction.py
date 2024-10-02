@@ -1,103 +1,54 @@
-<<<<<<< HEAD
-import numpy as np
-import pandas as pd
+import urllib.request
+import json
 import pickle
 
 # Load the trained model and scaler
-with open('weather_model.pkl', 'rb') as f:
-    model = pickle.load(f)
+with open('weather_model.pkl', 'rb') as model_file:
+    model = pickle.load(model_file)
 
-with open('scaler.pkl', 'rb') as f:
-    scaler = pickle.load(f)
+with open('scaler.pkl', 'rb') as scaler_file:
+    scaler = pickle.load(scaler_file)
 
-# Example input data (initial day's weather conditions)
-initial_data = pd.DataFrame({
-    'Temperature (C)': [20],
-    'Humidity': [100],
-    'Wind Speed (km/h)': [17],
-    'Visibility (km)': [66]
-})
+def fetch_weather_data():
+    url = "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&current=relative_humidity_2m,rain&hourly=temperature_2m,visibility,wind_speed_80m&timezone=auto"
+    
+    try:
+        # Send the request to the API
+        with urllib.request.urlopen(url) as response:
+            # Read and decode the response
+            data = response.read().decode()
+            # Parse JSON data
+            weather_data = json.loads(data)
 
-# Number of days to predict
-days_to_predict = 5
+            # Extract current weather data
+            current_weather = weather_data.get('current', {})
+            humidity = current_weather.get('relative_humidity_2m', 'N/A')
+            rain = current_weather.get('rain', 'N/A')
+            
+            # Extract hourly weather data
+            hourly_data = weather_data.get('hourly', {})
+            temperature = hourly_data.get('temperature_2m', ['N/A'])[0]
+            visibility = hourly_data.get('visibility', ['N/A'])[0]
+            wind_speed = hourly_data.get('wind_speed_80m', ['N/A'])[0]
 
-# Store predictions
-predictions = []
+            # Prepare data for prediction
+            features = [temperature, humidity, wind_speed, visibility]
+            features = scaler.transform([features])  # Apply scaling
 
-# Loop to predict for the next 5 days
-for day in range(days_to_predict):
-    # Scale the input data
-    initial_data_scaled = scaler.transform(initial_data)
+            # Predict using the trained model
+            predicted_temperature = model.predict(features)[0]
+            predicted_wind_speed = wind_speed  # Use the wind speed from the API response
 
-    # Make a prediction
-    predicted_temperature = model.predict(initial_data_scaled)[0]
-    predictions.append(predicted_temperature)
+            # Print the relevant outputs
+            print(f"Predicted Temperature: {predicted_temperature:.2f}°C")
+            print(f"Predicted Wind Speed: {predicted_wind_speed:.2f} km/h")
+            print(f"Current Humidity: {humidity:.2f}%")
+            print(f"Current Visibility: {visibility:.2f} meters")
+            print(rain)
 
-    # Print the prediction for the current day
-    print(f'Day {day + 1} - Predicted Apparent Temperature (C): {predicted_temperature}')
+    except Exception as e:
+        # Handle any exceptions (e.g., network issues, invalid responses)
+        print(f"Error fetching weather data: {e}")
 
-    # Update the input data for the next day's prediction
-    # Here, we assume the predicted temperature is used as the next day's temperature
-    initial_data['Temperature (C)'] = predicted_temperature
-
-    # Optionally, you can also adjust other parameters like humidity, wind speed, etc.
-    # For example:
-    # initial_data['Humidity'] = max(0, initial_data['Humidity'] - 1)  # Slightly decrease humidity
-    # initial_data['Wind Speed (km/h)'] = min(20, initial_data['Wind Speed (km/h)'] + 1)  # Slightly increase wind speed
-
-# Print all predictions
-print("\nPredicted Temperatures for the next 5 days:")
-for i, temp in enumerate(predictions, 1):
-    print(f"Day {i}: {temp}°C")
-=======
-import numpy as np
-import pandas as pd
-import pickle
-
-# Load the trained model and scaler
-with open('weather_model.pkl', 'rb') as f:
-    model = pickle.load(f)
-
-with open('scaler.pkl', 'rb') as f:
-    scaler = pickle.load(f)
-
-# Example input data (initial day's weather conditions)
-initial_data = pd.DataFrame({
-    'Temperature (C)': [20],
-    'Humidity': [100],
-    'Wind Speed (km/h)': [17],
-    'Visibility (km)': [66]
-})
-
-# Number of days to predict
-days_to_predict = 5
-
-# Store predictions
-predictions = []
-
-# Loop to predict for the next 5 days
-for day in range(days_to_predict):
-    # Scale the input data
-    initial_data_scaled = scaler.transform(initial_data)
-
-    # Make a prediction
-    predicted_temperature = model.predict(initial_data_scaled)[0]
-    predictions.append(predicted_temperature)
-
-    # Print the prediction for the current day
-    print(f'Day {day + 1} - Predicted Apparent Temperature (C): {predicted_temperature}')
-
-    # Update the input data for the next day's prediction
-    # Here, we assume the predicted temperature is used as the next day's temperature
-    initial_data['Temperature (C)'] = predicted_temperature
-
-    # Optionally, you can also adjust other parameters like humidity, wind speed, etc.
-    # For example:
-    # initial_data['Humidity'] = max(0, initial_data['Humidity'] - 1)  # Slightly decrease humidity
-    # initial_data['Wind Speed (km/h)'] = min(20, initial_data['Wind Speed (km/h)'] + 1)  # Slightly increase wind speed
-
-# Print all predictions
-print("\nPredicted Temperatures for the next 5 days:")
-for i, temp in enumerate(predictions, 1):
-    print(f"Day {i}: {temp}°C")
->>>>>>> b8bf76fc5762f70f1e88f0b5dfc98fd4643f945d
+if __name__ == "__main__":
+    fetch_weather_data()
