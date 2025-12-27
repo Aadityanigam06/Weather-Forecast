@@ -7,7 +7,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 import requests
 import pickle
 
-# Fetch historical data or a large dataset from the API (simulated here with a loop for multiple requests)
+# Fetch historical data or a large dataset from the API
 data_records = []
 
 for i in range(100):  # Assuming we simulate fetching data 100 times for training
@@ -24,7 +24,7 @@ for i in range(100):  # Assuming we simulate fetching data 100 times for trainin
     for temp, hum, vis, wind in zip(temperature, humidity, visibility, wind_speed):
         data_records.append([temp, hum, wind, vis])
 
-# Convert the collected data into a DataFrame
+# Convert the data into a DataFrame
 df = pd.DataFrame(data_records, columns=['Temperature (C)', 'Humidity', 'Wind Speed (km/h)', 'Visibility (km)'])
 df['Apparent Temperature (C)'] = df['Temperature (C)']  # In a real scenario, this should be a more complex calculation
 
