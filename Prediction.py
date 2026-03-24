@@ -2,7 +2,7 @@ import urllib.request
 import json
 import pickle
 
-# Load the trained model and scaler
+
 with open('C:/Users/aadit/OneDrive/Desktop/Code/weather_model.pkl', 'rb') as model_file:
     model = pickle.load(model_file)
 
